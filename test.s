@@ -1,3 +1,6 @@
 
+X = 3
+Y = 4 # test123
 
-main:
+main: 
+    li $a0, X
