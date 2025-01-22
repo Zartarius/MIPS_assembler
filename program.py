@@ -12,19 +12,34 @@ labels = None
 globals = None
 stack = [0] * 32000
 
-def load_immediate(register, value, constants):
+
+def syscall() -> None:
+    syscall_num = registers["$v0"]
+    arg = registers["$a0"]
+
+    if syscall_num == 1 or syscall_num == 4:
+        print(arg, end="")
+    elif syscall_num == 5:
+        registers["$v0"] = int(input())
+    elif syscall_num == 11:
+        print(arg, end="")
+    else:
+        print("Invalid syscall number.", file=sys.stderr)
+        sys.exit(1)
+
+
+def load_immediate(register, value, constants) -> None:
     if constants.get(value) is not None:
         registers[register] = constants.get(value)
+    elif all(c.isdigit() for c in value):
+        registers[register] = int(value)
     else:
-        try:
-            int(value)
-            registers[register] = int(value)
-        except ValueError:
-            print(f"Error: Invalid immediate value: {value}.")
-            sys.exit(1)
+        esc_seq_string = value.strip("'")
+        char = esc_seq_string.encode("utf-8").decode("unicode_escape")
+        registers[register] = char
+        
 
-
-class Instructions:
+class Program:
     def __init__(self, lines=None, prog_counter=0, variables=None):
         self.lines = lines
         self.prog_counter = prog_counter
@@ -40,15 +55,20 @@ class Instructions:
         else:
             return False
 
-    def execute(self) -> None:
+    def fetch_decode_execute(self) -> None:
         global constants, labels, globals
         delimeters = r"[ ,]+"
         instruction = re.split(delimeters, self.lines[self.prog_counter])
         op = instruction[0]
         
-        if op == "li" or op == "la":
+        if op == "syscall":
+            syscall()
+            self.prog_counter += 1
+        elif op == "li" or op == "la":
             load_immediate(instruction[1], instruction[2], constants)
             print(registers[instruction[1]])
+            self.prog_counter += 1
+        else:
             self.prog_counter += 1
 
     
