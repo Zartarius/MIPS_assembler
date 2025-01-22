@@ -8,6 +8,4 @@ A very basic MIPS 'interpreter' written primarily in Python. I don't plan on mak
 
 `main.py` - The central file, calls the internal and external functions. 
 
-`syntax_checker.py` - Checks if the MIPS syntax is correct, and throws errors if not. Limited functionality. 
-
 `test.s` - An assembly file to test the program.
